@@ -2,6 +2,7 @@ package CRUDApplication.controller;
 
 import CRUDApplication.model.User;
 import CRUDApplication.repo.UserRepo;
+import CRUDApplication.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,14 +15,18 @@ import java.util.Optional;
 @RestController
 public class UserController {
 
+//    @Autowired
+//    private UserRepo userRepo;
+
     @Autowired
-    private UserRepo userRepo;
+    private UserService userService; //injected service instead of repo
 
     @GetMapping("/getAllUsers")
     public ResponseEntity<List<User>> getAllUsers() {
         try {
-            List<User> userList = new ArrayList<>();
-            userRepo.findAll().forEach(userList::add);
+            //List<User> userList = new ArrayList<>();
+            //userRepo.findAll().forEach(userList::add);
+            List<User> userList = userService.getAllUsers(); // service layer call instead of repo
 
             if (userList.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -35,7 +40,9 @@ public class UserController {
     }
     @GetMapping("/getUserById/{id}")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        Optional<User> userData = userRepo.findById(id);
+        //Optional<User> userData = userRepo.findById(id);
+        Optional<User> userData = userService.getUserById(id); // service call
+
 
         if (userData.isPresent()) {
             return new ResponseEntity<>(userData.get(), HttpStatus.OK);
@@ -47,22 +54,25 @@ public class UserController {
     @PostMapping("/addUser")
     public ResponseEntity<User> addUser(@RequestBody User user) {
 
-            User userObj = userRepo.save(user);
-            return new ResponseEntity<>(userObj, HttpStatus.OK);
+            //User userObj = userRepo.save(user);
+        User userObj = userService.addUser(user); //service call
+            return new ResponseEntity<>(userObj, HttpStatus.CREATED); //status change from ok -> created status
 
 
     }
     @PatchMapping("/updateBook/{id}")
     public ResponseEntity<User> updateUserById(@PathVariable Long id, @RequestBody User newUserData) {
 
-            Optional<User> oldUserData = userRepo.findById(id);
+            //Optional<User> oldUserData = userRepo.findById(id);
+            Optional<User> oldUserData = userService.getUserById(id); //service call
 
             if (oldUserData.isPresent()) {
                 User updatedUserData = oldUserData.get();
                 updatedUserData.setName(newUserData.getName());
                 updatedUserData.setEmail(newUserData.getEmail());
 
-                User userObj = userRepo.save(updatedUserData);
+                //User userObj = userRepo.save(updatedUserData);
+                User userObj = userService.addUser(updatedUserData); //service call
                 return new ResponseEntity<>(userObj, HttpStatus.OK);
             }
 
@@ -71,7 +81,8 @@ public class UserController {
     }
     @DeleteMapping("/deleteUserById/{id}")
     public ResponseEntity<HttpStatus> deleteUserById(@PathVariable Long id) {
-       userRepo.deleteById(id);
+       //userRepo.deleteById(id);
+        userService.deleteUserById(id); //service call
        return new ResponseEntity<>(HttpStatus.OK);
 
     }
